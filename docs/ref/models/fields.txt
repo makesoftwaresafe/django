@@ -497,7 +497,7 @@ The default value can also be set at the database level with
 .. attribute:: Field.editable
 
 If ``False``, the field will not be displayed in the admin or any other
-:class:`~django.forms.ModelForm`. They are also skipped during :ref:`model
+:class:`~django.forms.ModelForm`. It will also be skipped during :ref:`model
 validation <validating-objects>`. Default is ``True``.
 
 ``error_messages``
@@ -1315,8 +1315,8 @@ materialized view.
 
 .. admonition:: Refresh the data
 
-    Since the database always computed the value, the object must be reloaded
-    to access the new value after :meth:`~Model.save()`, for example, by using
+    Since the database computes the value, the object must be reloaded to
+    access the new value after :meth:`~Model.save()`, for example, by using
     :meth:`~Model.refresh_from_db()`.
 
 .. admonition:: Database limitations
