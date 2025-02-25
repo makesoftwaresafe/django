@@ -13,6 +13,7 @@ from django.db import (
     OperationalError,
     connection,
     models,
+    transaction,
 )
 from django.db.models import (
     Count,
@@ -39,7 +40,13 @@ from django.db.models.functions import Cast
 from django.test import SimpleTestCase, TestCase, skipIfDBFeature, skipUnlessDBFeature
 from django.test.utils import CaptureQueriesContext
 
-from .models import CustomJSONDecoder, JSONModel, NullableJSONModel, RelatedJSONModel
+from .models import (
+    CustomJSONDecoder,
+    CustomSerializationJSONModel,
+    JSONModel,
+    NullableJSONModel,
+    RelatedJSONModel,
+)
 
 
 @skipUnlessDBFeature("supports_json_field")
@@ -296,6 +303,18 @@ class TestSaveLoad(TestCase):
         obj = JSONModel.objects.create(value=value)
         obj.refresh_from_db()
         self.assertEqual(obj.value, value)
+
+    @skipUnlessDBFeature("supports_primitives_in_json_field")
+    def test_bulk_update_custom_get_prep_value(self):
+        objs = CustomSerializationJSONModel.objects.bulk_create(
+            [CustomSerializationJSONModel(pk=1, json_field={"version": "1"})]
+        )
+        objs[0].json_field["version"] = "1-alpha"
+        CustomSerializationJSONModel.objects.bulk_update(objs, ["json_field"])
+        self.assertSequenceEqual(
+            CustomSerializationJSONModel.objects.values("json_field"),
+            [{"json_field": '{"version": "1-alpha"}'}],
+        )
 
 
 @skipUnlessDBFeature("supports_json_field")
@@ -974,7 +993,7 @@ class TestQuerying(TestCase):
             ("value__i__in", [False, "foo"], [self.objs[4]]),
         ]
         for lookup, value, expected in tests:
-            with self.subTest(lookup=lookup, value=value):
+            with self.subTest(lookup=lookup, value=value), transaction.atomic():
                 self.assertCountEqual(
                     NullableJSONModel.objects.filter(**{lookup: value}),
                     expected,
