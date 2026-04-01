@@ -21,6 +21,17 @@ relying on :setting:`FILE_UPLOAD_MAX_MEMORY_SIZE`.
 This issue has severity "low" according to the :ref:`Django security policy
 <security-disclosure>`.
 
+CVE-2026-35192: Session fixation via public cached pages and ``SESSION_SAVE_EVERY_REQUEST``
+===========================================================================================
+
+Response headers did not :ref:`vary on <using-vary-headers>` cookies if a
+session was not modified, but :setting:`SESSION_SAVE_EVERY_REQUEST` was
+``True``. A remote attacker could steal a user's session after that user visits
+a cached public page.
+
+This issue has severity "low" according to the :ref:`Django security policy
+<security-disclosure>`.
+
 Bugfixes
 ========
 
